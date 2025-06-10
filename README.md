@@ -25,7 +25,7 @@ It scrapes the current Spotlight images and stores them locally, avoiding duplic
 
 ## 🖼️ Screenshots
 
-![image](https://github.com/user-attachments/assets/e51a468f-01c1-428c-80a8-76f653558cb9) ![image](https://github.com/user-attachments/assets/449657f8-c528-4a9c-856d-141953e6d5a5)
+![image](https://github.com/user-attachments/assets/72dbc8b7-ac1a-4c0e-85da-a4e2a5a36866)
 
 
 
