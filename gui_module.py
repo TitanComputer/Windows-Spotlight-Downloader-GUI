@@ -1,5 +1,6 @@
 import ttkbootstrap as tb
 from ttkbootstrap.constants import *
+import tkinter.messagebox as messagebox
 import tkinter as tk
 from tkinter import font
 import threading
@@ -7,7 +8,8 @@ import threading
 
 class SpotlightDownloaderApp(tb.Window):
     def __init__(self, start_callback=None):
-        super().__init__(themename="flatly")
+        self.current_theme = "flatly"  # light theme by default
+        super().__init__(themename=self.current_theme)
         self.withdraw()
         self.title("Windows Spotlight Downloader")
         self.minsize(800, 600)
@@ -20,6 +22,70 @@ class SpotlightDownloaderApp(tb.Window):
         self.working_color_index = 0
         self.working_animation_running = True
         self.setup_context_menu()
+        self.working_status = False
+        self.configure_custom_styles()
+        # Bind the window close event
+        self.protocol("WM_DELETE_WINDOW", self.on_closing)
+
+    def configure_custom_styles(self):
+        # Redefine custom styles
+        self.style.configure("success.TButton", font=self.start_font)
+        self.style.configure("Red.TFrame", background="lightcoral")
+        self.style.configure("Blue.TFrame", background="lightblue")
+        self.style.configure("Green.TFrame", background="lightgreen")
+        # Style when working
+        self.style.configure("working.TButton", font=self.start_font)
+        self.style.map("working.TButton", foreground=[("disabled", "red")])
+        self.style.configure("working_dynamic.TButton", font=self.start_font)
+        self.style.map("working_dynamic.TButton", foreground=[("disabled", "red")])  # initial color
+        self.style.configure(
+            "done.TButton",
+            font=self.start_font,
+            foreground="blue",
+            background="lightblue",
+            bordercolor="#2196F3",
+            borderwidth=2,
+            relief="ridge",
+        )
+
+        self.style.map(
+            "done.TButton",
+            foreground=[("disabled", "blue")],
+            bordercolor=[("disabled", "#2196F3")],
+            background=[("disabled", "lightblue")],
+        )
+
+        if self.dark_mode_var.get():
+            self.log_text.config(bg="#2b2b2b", fg="white", insertbackground="white", state="normal")
+            self.log_text.tag_configure("even", background="#333333")
+            self.log_text.tag_configure("odd", background="#2b2b2b")
+            self.log_text.tag_config("sel", foreground="#f5f789")
+        else:
+            self.log_text.config(bg="white", fg="black", insertbackground="black", state="normal")
+            self.log_text.tag_configure("even", background="#f0f0f0")
+            self.log_text.tag_configure("odd", background="#ffffff")
+            # Highlight selected text
+            self.log_text.tag_config("sel", foreground="#002fff")
+
+        self.log_text.config(state="disabled")
+
+    def toggle_dark_mode(self):
+        if self.dark_mode_var.get():
+            new_theme = "darkly"  # dark theme
+        else:
+            new_theme = "flatly"  # light theme
+
+        self.style.theme_use(new_theme)
+        self.current_theme = new_theme
+        self.configure_custom_styles()
+
+    def on_closing(self):
+        if self.working_status:
+            result = messagebox.askyesno("Confirm Exit", "Program is working.\nAre you sure you want to exit?")
+            if result:
+                self.destroy()
+        else:
+            self.destroy()
 
     def animate_working(self):
         if not self.working_animation_running:
@@ -55,6 +121,7 @@ class SpotlightDownloaderApp(tb.Window):
                     child.configure(state="disabled")
 
             self.start_button.config(text="Working...", state="disabled")
+            self.working_status = True
             self.working_animation_running = True
             self.working_color_index = 0
             self.animate_working()
@@ -99,32 +166,8 @@ class SpotlightDownloaderApp(tb.Window):
         self.columnconfigure(0, weight=1)
 
         # Stylish Elements
-        style = tb.Style()
-        style.configure("success.TButton", font=self.start_font)
-        style.configure("Red.TFrame", background="lightcoral")
-        style.configure("Blue.TFrame", background="lightblue")
-        style.configure("Green.TFrame", background="lightgreen")
+        # style = tb.Style()
 
-        # Style when working
-        style.configure("working.TButton", font=self.start_font)
-        style.map("working.TButton", foreground=[("disabled", "red")])
-
-        style.configure(
-            "done.TButton",
-            font=self.start_font,
-            foreground="blue",
-            background="lightblue",
-            bordercolor="#2196F3",
-            borderwidth=2,
-            relief="ridge",
-        )
-
-        style.map(
-            "done.TButton",
-            foreground=[("disabled", "blue")],
-            bordercolor=[("disabled", "#2196F3")],
-            background=[("disabled", "lightblue")],
-        )
         # Top Frame
         top_frame = tb.Frame(self)
         top_frame.grid(row=0, column=0, sticky="new", padx=10, pady=10)
@@ -133,7 +176,7 @@ class SpotlightDownloaderApp(tb.Window):
 
         # Start button with style
         self.start_button = tb.Button(top_frame, text="Start", bootstyle="success", width=10, command=self.on_start)
-        self.start_button.grid(row=0, column=1, sticky="nesw", padx=(10, 0), pady=(8, 0))
+        self.start_button.grid(row=0, column=2, sticky="nesw", padx=(0, 0), pady=(8, 0))
 
         # Mode Frame
         self.mode_frame = tb.LabelFrame(top_frame, text="   Mode Selector   ")
@@ -150,9 +193,19 @@ class SpotlightDownloaderApp(tb.Window):
         rb2 = tb.Radiobutton(self.mode_frame, text="Landscape Only", variable=self.mode_var, value="landscape")
         rb3 = tb.Radiobutton(self.mode_frame, text="Portrait Only", variable=self.mode_var, value="portrait")
 
-        rb1.grid(row=0, column=0, padx=10, pady=5, ipadx=20, ipady=5, sticky="w")
-        rb2.grid(row=0, column=1, padx=10, pady=5, ipadx=20, ipady=5, sticky="w")
-        rb3.grid(row=0, column=2, padx=10, pady=5, ipadx=20, ipady=5, sticky="w")
+        rb1.grid(row=0, column=0, padx=10, pady=5, ipadx=12, ipady=5, sticky="w")
+        rb2.grid(row=0, column=1, padx=10, pady=5, ipadx=12, ipady=5, sticky="w")
+        rb3.grid(row=0, column=2, padx=10, pady=5, ipadx=12, ipady=5, sticky="w")
+
+        self.dark_mode_var = tk.BooleanVar(value=False)
+        dark_mode_switch = tb.Checkbutton(
+            top_frame,
+            text="Dark Mode",
+            variable=self.dark_mode_var,
+            command=self.toggle_dark_mode,
+            bootstyle="square-toggle",
+        )
+        dark_mode_switch.grid(row=0, column=1, padx=15, sticky="nesw", pady=(8, 0))
 
         # Log Frame
         log_frame = tb.LabelFrame(self, text="   Log   ")
@@ -167,13 +220,7 @@ class SpotlightDownloaderApp(tb.Window):
         log_container.columnconfigure(0, weight=1)
 
         self.log_text = tk.Text(log_container, height=10, wrap="word")
-
-        # Highlight selected text
-        self.log_text.tag_config("sel", foreground="#002fff")
-
         self.log_text.grid(row=0, column=0, sticky="nsew")
-        self.log_text.tag_configure("even", background="#f0f0f0")
-        self.log_text.tag_configure("odd", background="#ffffff")
 
         # Scrollbar beside Textbox
         self.scrollbar = tb.Scrollbar(log_container, orient="vertical", command=self.log_text.yview)

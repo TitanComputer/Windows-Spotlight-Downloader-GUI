@@ -1,5 +1,8 @@
 import traceback
-import requests, os, re, json
+import requests
+import os
+import re
+import json
 from time import sleep
 from datetime import datetime
 from bs4 import BeautifulSoup as BS
@@ -206,6 +209,7 @@ def main():
     app.add_log_line("The program ended at " + datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
     app.add_log_line(f"The program ran in {hours} hour(s), {minutes} minute(s), and {seconds} second(s).")
     app.working_animation_running = False
+    app.working_status = False
     app.start_button.config(state="disabled", text="Done!", style="done.TButton")
     pass
 
