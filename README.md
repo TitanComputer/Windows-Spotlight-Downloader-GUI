@@ -16,6 +16,7 @@ It scrapes the current Spotlight images and stores them locally, avoiding duplic
 - Separates and saves images into Landscape and Portrait folders
 - Allows users to select download mode (Landscape only / Portrait only / Both)
 - Easy-to-use graphical interface built with `ttkbootstrap`
+- **Dark Mode** support for a more comfortable experience in low-light environments. 🌙
 - Portable `.exe` version included (no Python required)
 - Supports Windows 10 & 11
 - Robust internet error handling — retries failed pages instead of skipping
