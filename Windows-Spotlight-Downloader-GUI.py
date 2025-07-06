@@ -108,6 +108,7 @@ def main():
                     FirstRun = False
                 CurrentPageNumber = str(soup.find("span", class_="page-numbers current").text).replace(",", "")
                 app.add_log_line("Page %s of %s " % (CurrentPageNumber, LastPageNumber))
+                app.after(0, app.update_progress, int(CurrentPageNumber), int(LastPageNumber))
                 PostsLinks = soup.find_all("a", class_="anons-thumbnail show")
                 try:
                     NextPage = soup.find("a", class_="next page-numbers").get("href")
@@ -208,6 +209,7 @@ def main():
     seconds = total_seconds % 60
     app.add_log_line("The program ended at " + datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
     app.add_log_line(f"The program ran in {hours} hour(s), {minutes} minute(s), and {seconds} second(s).")
+    app.after(0, app.update_progress, int(LastPageNumber), int(LastPageNumber))
     app.working_animation_running = False
     app.working_status = False
     app.start_button.config(state="disabled", text="Done!", style="done.TButton")

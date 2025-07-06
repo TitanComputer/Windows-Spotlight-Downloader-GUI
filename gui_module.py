@@ -8,7 +8,7 @@ import threading
 
 class SpotlightDownloaderApp(tb.Window):
     def __init__(self, start_callback=None):
-        self.current_theme = "flatly"  # light theme by default
+        self.current_theme = "darkly"  # dark theme by default
         super().__init__(themename=self.current_theme)
         self.withdraw()
         self.title("Windows Spotlight Downloader")
@@ -24,8 +24,30 @@ class SpotlightDownloaderApp(tb.Window):
         self.setup_context_menu()
         self.working_status = False
         self.configure_custom_styles()
+        self.dark_mode_var.set(True)
+        self.toggle_dark_mode()
+
         # Bind the window close event
         self.protocol("WM_DELETE_WINDOW", self.on_closing)
+        self.current_page_number = 0
+        self.last_page_number = 1  # prevent division by zero
+
+    def update_progress(self, current_page, last_page):
+        self.current_page_number = current_page
+        self.last_page_number = last_page
+        if last_page <= 0:
+            percent = 0
+        else:
+            percent = int((current_page / last_page) * 100)
+        self.progress_gauge.configure(value=percent)
+
+        if percent >= 100:
+            self.progress_gauge.stop()
+            self.progress_gauge._pulse_pos = -1000
+            self.progress_gauge._draw()
+            self.progress_gauge.configure(text=f"Process Finished — {percent}% Completed!")
+        else:
+            self.progress_gauge.configure(text=f"Page {current_page} of {last_page} - {percent}%")
 
     def configure_custom_styles(self):
         # Redefine custom styles
@@ -60,6 +82,7 @@ class SpotlightDownloaderApp(tb.Window):
             self.log_text.tag_configure("even", background="#333333")
             self.log_text.tag_configure("odd", background="#2b2b2b")
             self.log_text.tag_config("sel", foreground="#f5f789")
+
         else:
             self.log_text.config(bg="white", fg="black", insertbackground="black", state="normal")
             self.log_text.tag_configure("even", background="#f0f0f0")
@@ -125,6 +148,7 @@ class SpotlightDownloaderApp(tb.Window):
             self.working_animation_running = True
             self.working_color_index = 0
             self.animate_working()
+            self.progress_gauge.start(2)
             threading.Thread(target=self.start_callback).start()
 
     def center_window(self):
@@ -161,8 +185,8 @@ class SpotlightDownloaderApp(tb.Window):
         self.log_text.bind("<Button-3>", self.show_context_menu)  # right-click
 
     def create_widgets(self):
-        self.rowconfigure(0, weight=0)
-        self.rowconfigure(1, weight=1)
+        self.rowconfigure((0, 1), weight=0)
+        self.rowconfigure(2, weight=1)
         self.columnconfigure(0, weight=1)
 
         # Stylish Elements
@@ -207,9 +231,25 @@ class SpotlightDownloaderApp(tb.Window):
         )
         dark_mode_switch.grid(row=0, column=1, padx=15, sticky="nesw", pady=(8, 0))
 
+        # Floodgauge
+        self.progress_gauge = tb.Floodgauge(
+            self,
+            bootstyle="secondary",
+            font=self.start_font,
+            text="Ready...",
+            maximum=100,
+            value=0,
+            mode="indeterminate",
+            length=600,
+        )
+        self.progress_gauge._pulse_pos = -1000
+        self.progress_gauge._draw()
+
+        self.progress_gauge.grid(row=1, column=0, sticky="ew", padx=10, pady=(0, 10))
+
         # Log Frame
         log_frame = tb.LabelFrame(self, text="   Log   ")
-        log_frame.grid(row=1, column=0, rowspan=4, sticky="nsew", padx=10, pady=(0, 10))
+        log_frame.grid(row=2, column=0, rowspan=4, sticky="nsew", padx=10, pady=(0, 10))
         log_frame.rowconfigure(0, weight=1)
         log_frame.columnconfigure(0, weight=1)
 
